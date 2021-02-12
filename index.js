@@ -1,5 +1,5 @@
 const PORT = process.env.PORT || 5000;
-const {includes, lowerCase, random, sample} = require('lodash');
+const {includes, sample} = require('lodash');
 const express = require('express');
 
 express()
@@ -115,8 +115,6 @@ express()
             message = hello;
             // Если у юзера есть экран:
             //if (hasScreen) {
-            // Кнопка "Справка":
-            buttonSlot.push(helpButton);
             // Кнопка "Продолжай":
             buttonSlot.push(playButton);
             //}
@@ -131,7 +129,6 @@ express()
             isEndSession = true;
         } else {
             message = unknown;
-            buttonSlot.push(helpButton);
             buttonSlot.push(playButton);
         }
 
