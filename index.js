@@ -42,7 +42,7 @@ express()
 
         // Слот для кнопок (саджестов):
         let buttonSlot = [];
-        const playButton = {"title": "Продолжай", "hide": true};
+        const playButton = {"title": "Дальше", "hide": true};
 
 
         // Перманентный вопрос к юзеру из серии: "Хотите продолжить?"
@@ -77,7 +77,7 @@ express()
         let intent;
 
         // 1. Юзер хочет слушать цитаты (играть -- в нашей терминологии):
-        const playWords = ['дальше', 'продолжить', 'продолжать'];
+        const playWords = ['дальше', 'продолжить', 'продолжать', 'продолжай'];
 
         for (let item of playWords) {
             if (includes(userUtterance, item)) {
