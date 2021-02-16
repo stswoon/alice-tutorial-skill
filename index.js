@@ -2,65 +2,63 @@ const PORT = process.env.PORT || 5000;
 const {includes, sample} = require('lodash');
 const express = require('express');
 
+class AliceAnswerTemplate {
+    greetings() {
+        return {
+            text: 'Привет! Это навык для игры в твистер, я буду говорить какую руку или ногу на какой круг ставить. Поиграем? Скажите "Дальше"',
+            buttons: ["Дальше", "Выход"]
+        };
+    }
+
+    isExit(userUtterance) {
+        const exitWords = ['нет', 'выйти', 'закрыть', 'завершить', 'хватит', 'достаточно'];
+        for (let item of exitWords) {
+            if (includes(userUtterance, item)) {
+                return true;
+            }
+        }
+    }
+
+    Exit(userUtterance) {
+        return {
+            text: 'Привет! Это навык для игры в твистер, я буду говорить какую руку или ногу на какой круг ставить. Поиграем? Скажите "Дальше"'
+            buttons: ["Дальше", "Выход"]
+        };
+    }
+
+
+    pong() {
+        return {text: 'ОК', end_session: true};
+    }
+}
+
+
 express()
     .use(express.json())
     .get('/', (req, res) => {
         res.send("OK").status(200);
     })
-    .post('/alice', (req, res) => {
-        console.log("req", req.body);
-        const {meta, request, version, session} = req.body;
-        console.log(meta);
-        console.log(request);
-        console.log(version);
-        console.log(session);
+    .post('/alice', (request, response) => {
+        console.log("Request: ", request.body);
+        const {meta, request, version, session} = request.body;
+        console.log("Data from request: ", {meta, request, version, session});
         const userUtterance = (request.original_utterance || "").toLowerCase();
         console.log("userUtterance", userUtterance);
 
-        // Быстрый ответ (чтобы не делать лишние запросы к стороннему API) на проверочный пинг от Яндекса:
         if (userUtterance === 'ping') {
-            res.send({
-                version, session,
-                response: {
-                    text: 'ОК',
-                    end_session: true
-                }
-            }).status(200);
+            response.send({version, session, response: {text: 'ОК', end_session: true}}).status(200);
             return;
         }
 
+        const hasScreen = typeof meta.interfaces.screen !== "undefined" ? true : false;
 
-        // Получаем массив всех слов из последней фразы юзера:
-        let userWords = [];
+        const aliceAnswerTemplate = new AliceAnswerTemplate();
 
-        if (request.nlu.tokens.length > 0) {
-            const tokensArr = request.nlu.tokens;
-            for (let i = 0; i < tokensArr.length; i++) {
-                userWords.push(tokensArr[i]);
-            }
-        }
 
         // Слот для кнопок (саджестов):
         let buttonSlot = [];
         const playButton = {"title": "Дальше", "hide": true};
 
-
-        // Перманентный вопрос к юзеру из серии: "Хотите продолжить?"
-        const wish = [
-            'Хотите',
-            'Желаете',
-            'Не против'
-        ];
-        const know = [
-            'узнать',
-            'услышать',
-        ];
-        const thought = [
-            'следующее задание',
-            'что будет дальше',
-        ];
-        // Формируем перманентный вопрос к юзеру:
-        const prompt = `${sample(wish)} ${sample(know)} ${sample(thought)}?`;
 
         // Создадим также (на этот раз для простоты без вариативности) фразы приветствия, справки, прощания,
         // а также фразу для ответа на непонятые (т.е. те, которые наш код ещё не обрабатывает) вопросыи юзера:
@@ -68,10 +66,6 @@ express()
         const help = 'Я умею играть в твистер! Чтобы закрыть - скажите: "Выйти"';
         const bye = 'Спасибо за внимание! До скорой встречи!';
         const unknown = 'Я не поняла повторите';
-
-        // Теперь стараемся понять юзера. Эту логику также лучше писать в отдельном файле,
-        // поскольку может быть много кода, но в данном весьма упрощённом примере -- пишем здесь.
-        // Будем использовать функции includes() из библиотеки Lodash, которая ищет подстроку.
 
         // Намерения юзера:
         let intent;
@@ -136,7 +130,7 @@ express()
 
 
         // Ответ Алисе:
-        res.send({
+        response.send({
             version,
             session,
             response: {
